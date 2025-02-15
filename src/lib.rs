@@ -13,17 +13,32 @@ use core::{
     ops::{Index, Range},
 };
 
+/// A trait for index types used in arenas.
+///
+/// An [`Id`] represents both the internal index in an arena and a type-level distinction
+/// (for example, when using multiple arenas with the same underlying numeric index type).
+///
+/// # Examples
+///
+/// ```
+/// use indexed_arena::Id;
+///
+/// // Using the built-in implementation for u32:
+/// let idx = u32::from_usize(5);
+/// assert_eq!(idx.into_usize(), 5);
+/// ```
 pub trait Id: Copy + Ord {
+    /// The maximum value (as a usize) this id type can represent.
     const MAX: usize;
 
-    /// Convert to this type from a `usize`.
+    /// Converts a `usize` value to this id type.
     ///
-    /// `idx` is guaranteed to be less than `Self::MAX`.
+    /// The input `idx` (should / is guaranteed to) be less than `Self::MAX`.
     fn from_usize(idx: usize) -> Self;
 
-    /// Convert to `usize` from this type.
+    /// Converts this id type into a `usize`.
     ///
-    /// The returned value should be less than `Self::MAX`.
+    /// The returned value (should / is guaranteed to) be less than `Self::MAX`.
     fn into_usize(self) -> usize;
 }
 
@@ -55,12 +70,39 @@ macro_rules! impl_idx_for_nums {
 }
 impl_idx_for_nums!(u8, u16, u32, u64, usize);
 
+/// A typed index for referencing elements in an [`Arena`].
+///
+/// The [`Idx<T, I>`] type wraps an underlying id of type `I` and carries a phantom type `T`
+/// to ensure type safety when indexing into an arena.
+///
+/// # Examples
+///
+/// ```
+/// use indexed_arena::{Arena, Idx};
+///
+/// let mut arena: Arena<&str, u32> = Arena::new();
+/// let idx: Idx<&str, u32> = arena.alloc("hello");
+/// assert_eq!(arena[idx], "hello");
+/// ```
 pub struct Idx<T, I: Id> {
     raw: I,
     phantom: PhantomData<fn() -> T>,
 }
 
 impl<T, I: Id> Idx<T, I> {
+    /// Consumes the index and returns its underlying raw value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexed_arena::{Arena, Idx};
+    ///
+    /// let mut arena: Arena<i32, u32> = Arena::new();
+    /// let idx = arena.alloc(10);
+    /// let raw = idx.into_raw();
+    /// // raw is a u32 representing the index inside the arena.
+    /// assert_eq!(raw, 0u32);
+    /// ```
     #[inline]
     pub const fn into_raw(self) -> I {
         self.raw
@@ -114,6 +156,20 @@ impl<T, I: Id + Hash> Hash for Idx<T, I> {
     }
 }
 
+/// A range of indices within an `Arena`.
+///
+/// This type represents a contiguous range of allocated indices in an arena.
+///
+/// # Examples
+///
+/// ```
+/// use indexed_arena::{Arena, IdxRange};
+///
+/// let mut arena: Arena<i32, u32> = Arena::new();
+/// let range: IdxRange<i32, u32> = arena.alloc_many(vec![1, 2, 3, 4]);
+/// assert_eq!(range.len(), 4);
+/// assert!(!range.is_empty());
+/// ```
 pub struct IdxRange<T, I: Id> {
     start: I,
     end: I,
@@ -121,26 +177,31 @@ pub struct IdxRange<T, I: Id> {
 }
 
 impl<T, I: Id> IdxRange<T, I> {
+    /// Creates a new [`IdxRange`] from the given range of raw indices.
     #[inline]
     pub const fn new(range: Range<I>) -> Self {
         Self { start: range.start, end: range.end, phantom: PhantomData }
     }
 
+    /// Returns the starting raw index.
     #[inline]
     pub const fn start(&self) -> I {
         self.start
     }
 
+    /// Returns the ending raw index.
     #[inline]
     pub const fn end(&self) -> I {
         self.end
     }
 
+    /// Returns the number of indices in the range.
     #[inline]
     pub fn len(&self) -> usize {
         self.end.into_usize() - self.start.into_usize()
     }
 
+    /// Returns true if the range is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.start == self.end
@@ -187,37 +248,91 @@ impl<T, I: Id> PartialOrd for IdxRange<T, I> {
     }
 }
 
+/// A index-based arena.
+///
+/// [`Arena`] provides a mechanism to allocate objects and refer to them by a
+/// strongly-typed index ([`Idx<T, I>`]). The index not only represents the position
+/// in the underlying vector but also leverages the type system to prevent accidental misuse
+/// across different arenas.
 pub struct Arena<T, I: Id> {
     data: Vec<T>,
     phantom: PhantomData<(I, T)>,
 }
 
 impl<T, I: Id> Arena<T, I> {
+    /// Creates a new empty arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexed_arena::Arena;
+    ///
+    /// let arena: Arena<i32, u32> = Arena::new();
+    /// assert!(arena.is_empty());
+    /// ```
     #[inline]
     pub const fn new() -> Self {
         Self { data: Vec::new(), phantom: PhantomData }
     }
 
+    /// Creates a new arena with the specified capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexed_arena::Arena;
+    ///
+    /// let arena: Arena<i32, u32> = Arena::with_capacity(10);
+    /// assert!(arena.is_empty());
+    /// assert!(arena.capacity() >= 10);
+    /// ```
     #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Self { data: Vec::with_capacity(capacity), phantom: PhantomData }
     }
 
+    /// Returns the number of elements stored in the arena.
     #[inline]
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
+    /// Returns the capacity of the arena.
+    #[inline]
+    pub fn capacity(&self) -> usize {
+        self.data.capacity()
+    }
+
+    /// Returns `true` if the arena contains no elements.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
+    /// Allocates an element in the arena and returns its index.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the arena is full (i.e. if the number of elements exceeds `I::MAX`).
+    /// If you hnadle this case, use [`Arena::try_alloc`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexed_arena::{Arena, Idx};
+    ///
+    /// let mut arena: Arena<&str, u32> = Arena::new();
+    /// let idx: Idx<&str, u32> = arena.alloc("hello");
+    /// assert_eq!(arena[idx], "hello");
+    /// ```
     #[inline]
     pub fn alloc(&mut self, value: T) -> Idx<T, I> {
         self.try_alloc(value).expect("arena is full")
     }
 
+    /// Fallible version of [`Arena::alloc`].
+    ///
+    /// This method returns `None` if the arena is full.
     #[inline]
     pub fn try_alloc(&mut self, value: T) -> Option<Idx<T, I>> {
         if self.data.len() > I::MAX {
@@ -229,11 +344,29 @@ impl<T, I: Id> Arena<T, I> {
         }
     }
 
+    /// Allocates multiple elements in the arena and returns the index range covering them.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the arena cannot allocate all elements (i.e. if the arena becomes full).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexed_arena::{Arena, IdxRange};
+    ///
+    /// let mut arena: Arena<i32, u32> = Arena::new();
+    /// let range: IdxRange<i32, u32> = arena.alloc_many(vec![10, 20, 30]);
+    /// assert_eq!(&arena[range], &[10, 20, 30]);
+    /// ```
     #[inline]
     pub fn alloc_many(&mut self, values: impl IntoIterator<Item = T>) -> IdxRange<T, I> {
         self.try_alloc_many(values).expect("arena is full")
     }
 
+    /// Fallible version of [`Arena::alloc_many`].
+    ///
+    /// This method returns `None` if the arena becomes full.
     #[inline]
     pub fn try_alloc_many(
         &mut self,
