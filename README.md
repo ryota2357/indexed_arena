@@ -1,5 +1,8 @@
 # indexed_arena
 
+[![Crates.io](https://img.shields.io/crates/v/indexed_arena.svg)](https://crates.io/crates/indexed_arena)
+[![Documentation](https://docs.rs/indexed_arena/badge.svg)](https://docs.rs/indexed_arena)
+
 A simple, index-based arena without deletion.
 
 This crate is inspired by [la-arena](https://crates.io/crates/la-arena), which is used in [rust-analyzer](https://github.com/rust-lang/rust-analyzer).
