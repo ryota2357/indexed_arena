@@ -35,4 +35,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Test
-        run: cargo test ${{ matrix.opt }}
+        run: cargo test
+
+      - name: Test (release)
+        run: cargo test --release
