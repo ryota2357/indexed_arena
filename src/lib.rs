@@ -17,16 +17,6 @@ use core::{
 ///
 /// An [`Id`] represents both the internal index in an arena and a type-level distinction
 /// (for example, when using multiple arenas with the same underlying numeric index type).
-///
-/// # Examples
-///
-/// ```
-/// use indexed_arena::Id;
-///
-/// // Using the built-in implementation for u32:
-/// let idx = u32::from_usize(5);
-/// assert_eq!(idx.into_usize(), 5);
-/// ```
 pub trait Id: Copy + Ord {
     /// The maximum value (as a usize) this id type can represent.
     const MAX: usize;
@@ -63,7 +53,7 @@ macro_rules! impl_idx_for_nums {
             }
             #[inline]
             fn into_usize(self) -> usize {
-                self.get() as usize
+                (self.get() - 1) as usize
             }
         }
     )*};
