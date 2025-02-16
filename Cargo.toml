@@ -1,6 +1,11 @@
 [package]
 name = "indexed_arena"
-version = "0.0.0"
+description = "A simple, index-based arena without deletion."
+version = "0.1.0"
 edition = "2021"
-
-[dependencies]
+authors = ["ryota2357"]
+repository = "https://github.com/ryota2357/indexed_arena"
+readme = "README.md"
+license = "MIT"
+keywords = ["arena"]
+categories = ["data-structures", "no-std"]
