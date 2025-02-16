@@ -10,7 +10,7 @@ use core::{
     hash::{Hash, Hasher},
     marker::PhantomData,
     num::NonZero,
-    ops::{Index, Range},
+    ops::{Index, IndexMut, Range},
 };
 
 /// A trait for index types used in arenas.
@@ -404,6 +404,13 @@ impl<T, I: Id> Index<IdxRange<T, I>> for Arena<T, I> {
     #[inline]
     fn index(&self, range: IdxRange<T, I>) -> &Self::Output {
         &self.data[range.start.into_usize()..range.end.into_usize()]
+    }
+}
+
+impl<T, I: Id> IndexMut<Idx<T, I>> for Arena<T, I> {
+    #[inline]
+    fn index_mut(&mut self, index: Idx<T, I>) -> &mut Self::Output {
+        &mut self.data[index.raw.into_usize()]
     }
 }
 
