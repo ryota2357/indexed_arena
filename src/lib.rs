@@ -32,7 +32,7 @@ pub trait Id: Copy + Ord {
     fn into_usize(self) -> usize;
 }
 
-macro_rules! impl_idx_for_nums {
+macro_rules! impl_id_for_nums {
     ($($ty:ty),*) => {$(
         impl Id for $ty {
             const MAX: usize = <$ty>::MAX as usize;
@@ -58,7 +58,7 @@ macro_rules! impl_idx_for_nums {
         }
     )*};
 }
-impl_idx_for_nums!(u8, u16, u32, u64, usize);
+impl_id_for_nums!(u8, u16, u32, u64, usize);
 
 /// A typed index for referencing elements in an [`Arena`].
 ///
