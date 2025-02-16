@@ -421,6 +421,12 @@ impl<T: Clone, I: Id> Clone for Arena<T, I> {
     }
 }
 
+impl<T: fmt::Debug, I: Id> fmt::Debug for Arena<T, I> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Arena").field("len", &self.len()).field("data", &self.data).finish()
+    }
+}
+
 impl<T: PartialEq, I: Id> PartialEq for Arena<T, I> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
