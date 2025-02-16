@@ -282,18 +282,55 @@ impl<T, I: Id> Arena<T, I> {
     }
 
     /// Returns the number of elements stored in the arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::new();
+    /// assert_eq!(arena.len(), 0);
+    ///
+    /// arena.alloc("foo");
+    /// assert_eq!(arena.len(), 1);
+    ///
+    /// arena.alloc("bar");
+    /// assert_eq!(arena.len(), 2);
+    ///
+    /// arena.alloc("baz");
+    /// assert_eq!(arena.len(), 3);
+    /// ```
     #[inline]
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
     /// Returns the capacity of the arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use indexed_arena::Arena;
+    ///
+    /// let arena: Arena<String, u32> = Arena::with_capacity(10);
+    /// assert!(arena.capacity() >= 10);
+    /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
         self.data.capacity()
     }
 
     /// Returns `true` if the arena contains no elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::new();
+    /// assert!(arena.is_empty());
+    ///
+    /// arena.alloc(0.9);
+    /// assert!(!arena.is_empty());
+    /// ```
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
@@ -376,6 +413,18 @@ impl<T, I: Id> Arena<T, I> {
     }
 
     /// Shrinks the capacity of the arena to fit the number of elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::with_capacity(10);
+    /// arena.alloc_many(&[1, 2, 3]);
+    /// assert!(arena.capacity() >= 10);
+    ///
+    /// arena.shrink_to_fit();
+    /// assert!(arena.capacity() >= 3);
+    /// ```
     #[inline]
     pub fn shrink_to_fit(&mut self) {
         self.data.shrink_to_fit();
