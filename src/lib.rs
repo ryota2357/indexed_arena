@@ -374,6 +374,12 @@ impl<T, I: Id> Arena<T, I> {
         let end = I::from_usize(len);
         Some(IdxRange::new(start..end))
     }
+
+    /// Shrinks the capacity of the arena to fit the number of elements.
+    #[inline]
+    pub fn shrink_to_fit(&mut self) {
+        self.data.shrink_to_fit();
+    }
 }
 
 impl<T, I: Id> Default for Arena<T, I> {
