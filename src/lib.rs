@@ -363,9 +363,9 @@ impl<T, I: Id> Arena<T, I> {
         if self.data.len() > I::MAX {
             None
         } else {
-            let idx = I::from_usize(self.data.len());
+            let id = I::from_usize(self.data.len());
             self.data.push(value);
-            Some(Idx { raw: idx, phantom: PhantomData })
+            Some(Idx { raw: id, phantom: PhantomData })
         }
     }
 
