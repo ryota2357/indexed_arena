@@ -8,9 +8,11 @@ use alloc::vec::Vec;
 use core::{
     fmt,
     hash::{Hash, Hasher},
+    iter,
     marker::PhantomData,
     num::NonZero,
     ops::{Index, IndexMut, Range},
+    slice,
 };
 
 /// A trait for index types used in arenas.
@@ -410,6 +412,51 @@ impl<T, I: Id> Arena<T, I> {
         Some(IdxRange::new(start..end))
     }
 
+    /// Returns a iterator over the elements and their indices in the arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::new();
+    ///
+    /// let idx1 = arena.alloc(20);
+    /// let idx2 = arena.alloc(40);
+    /// let idx3 = arena.alloc(60);
+    ///
+    /// let mut iter = arena.iter();
+    /// assert_eq!(iter.next(), Some((idx1, &20)));
+    /// assert_eq!(iter.next(), Some((idx2, &40)));
+    /// assert_eq!(iter.next(), Some((idx3, &60)));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[inline]
+    pub fn iter(&self) -> Iter<'_, T, I> {
+        Iter { iter: self.data.iter().enumerate(), phantom: PhantomData }
+    }
+
+    /// Returns a mutable iterator over the elements and their indices in the arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::new();
+    /// let idx1 = arena.alloc(20);
+    ///
+    /// assert_eq!(arena[idx1], 20);
+    ///
+    /// let mut iterator = arena.iter_mut();
+    /// *iterator.next().unwrap().1 = 10;
+    /// drop(iterator);
+    ///
+    /// assert_eq!(arena[idx1], 10);
+    /// ```
+    #[inline]
+    pub fn iter_mut(&mut self) -> IterMut<'_, T, I> {
+        IterMut { iter: self.data.iter_mut().enumerate(), phantom: PhantomData }
+    }
+
     /// Shrinks the capacity of the arena to fit the number of elements.
     ///
     /// # Examples
@@ -487,5 +534,109 @@ impl<T: Hash, I: Id> Hash for Arena<T, I> {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.data.hash(state)
+    }
+}
+
+impl<'a, T, I: Id> IntoIterator for &'a Arena<T, I> {
+    type Item = (Idx<T, I>, &'a T);
+    type IntoIter = Iter<'a, T, I>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
+impl<T, I: Id> IntoIterator for Arena<T, I> {
+    type Item = (Idx<T, I>, T);
+    type IntoIter = IntoIter<T, I>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        IntoIter { iter: self.data.into_iter().enumerate(), phantom: PhantomData }
+    }
+}
+
+macro_rules! iterator_impls {
+    ($ty:ty, type Item = $item_ty:ty;) => {
+        impl<'a, T, I: Id> Iterator for $ty {
+            type Item = $item_ty;
+            #[inline]
+            fn next(&mut self) -> Option<Self::Item> {
+                let (id, value) = self.iter.next().map(|(i, v)| (I::from_usize(i), v))?;
+                Some((Idx { raw: id, phantom: PhantomData }, value))
+            }
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                self.iter.size_hint()
+            }
+            #[inline]
+            fn count(self) -> usize {
+                self.iter.count()
+            }
+            #[inline]
+            fn nth(&mut self, n: usize) -> Option<Self::Item> {
+                let (id, value) = self.iter.nth(n).map(|(i, v)| (I::from_usize(i), v))?;
+                Some((Idx { raw: id, phantom: PhantomData }, value))
+            }
+        }
+        impl<'a, T, I: Id> DoubleEndedIterator for $ty {
+            #[inline]
+            fn next_back(&mut self) -> Option<Self::Item> {
+                let (id, value) = self.iter.next_back().map(|(i, v)| (I::from_usize(i), v))?;
+                Some((Idx { raw: id, phantom: PhantomData }, value))
+            }
+        }
+        impl<'a, T, I: Id> ExactSizeIterator for $ty {
+            #[inline]
+            fn len(&self) -> usize {
+                self.iter.len()
+            }
+        }
+        impl<'a, T, I: Id> iter::FusedIterator for $ty {}
+    };
+}
+
+pub struct Iter<'a, T, I: Id> {
+    iter: iter::Enumerate<slice::Iter<'a, T>>,
+    phantom: PhantomData<I>,
+}
+
+iterator_impls! {
+    Iter<'a, T, I>,
+    type Item = (Idx<T, I>, &'a T);
+}
+
+impl<T: Clone, I: Id> Clone for Iter<'_, T, I> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self { iter: self.iter.clone(), phantom: PhantomData }
+    }
+}
+
+pub struct IterMut<'a, T, I: Id> {
+    iter: iter::Enumerate<slice::IterMut<'a, T>>,
+    phantom: PhantomData<I>,
+}
+
+iterator_impls! {
+    IterMut<'a, T, I>,
+    type Item = (Idx<T, I>, &'a mut T);
+}
+
+pub struct IntoIter<T, I: Id> {
+    iter: iter::Enumerate<alloc::vec::IntoIter<T>>,
+    phantom: PhantomData<I>,
+}
+
+iterator_impls! {
+    IntoIter<T, I>,
+    type Item = (Idx<T, I>, T);
+}
+
+impl<T: Clone, I: Id> Clone for IntoIter<T, I> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self { iter: self.iter.clone(), phantom: PhantomData }
     }
 }
