@@ -1,7 +1,7 @@
 [package]
 name = "indexed_arena"
 description = "A simple, index-based arena without deletion."
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["ryota2357"]
 repository = "https://github.com/ryota2357/indexed_arena"
