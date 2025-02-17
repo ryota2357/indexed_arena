@@ -255,8 +255,7 @@ impl<T, I: Id> Arena<T, I> {
     /// # Examples
     ///
     /// ```
-    /// use indexed_arena::Arena;
-    ///
+    /// # use indexed_arena::Arena;
     /// let arena: Arena<i32, u32> = Arena::new();
     /// assert!(arena.is_empty());
     /// ```
@@ -270,8 +269,7 @@ impl<T, I: Id> Arena<T, I> {
     /// # Examples
     ///
     /// ```
-    /// use indexed_arena::Arena;
-    ///
+    /// # use indexed_arena::Arena;
     /// let arena: Arena<i32, u32> = Arena::with_capacity(10);
     /// assert!(arena.is_empty());
     /// assert!(arena.capacity() >= 10);
