@@ -240,6 +240,14 @@ impl<T, I: Id> PartialOrd for IdxRange<T, I> {
     }
 }
 
+impl<T, I: Id + Hash> Hash for IdxRange<T, I> {
+    #[inline]
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.start.hash(state);
+        self.end.hash(state);
+    }
+}
+
 /// A index-based arena.
 ///
 /// [`Arena`] provides a mechanism to allocate objects and refer to them by a
