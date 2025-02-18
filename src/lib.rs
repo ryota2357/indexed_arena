@@ -200,6 +200,14 @@ impl<T, I: Id> IdxRange<T, I> {
     }
 }
 
+impl<T, I: Id> Clone for IdxRange<T, I> {
+    #[inline]
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+impl<T, I: Id> Copy for IdxRange<T, I> {}
+
 impl<T, I: Id + fmt::Debug> fmt::Debug for IdxRange<T, I> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut type_name = core::any::type_name::<T>();
@@ -209,14 +217,6 @@ impl<T, I: Id + fmt::Debug> fmt::Debug for IdxRange<T, I> {
         write!(fmt, "IdxRange::<{}>({:?}..{:?})", type_name, self.start, self.end)
     }
 }
-
-impl<T, I: Id> Clone for IdxRange<T, I> {
-    #[inline]
-    fn clone(&self) -> Self {
-        *self
-    }
-}
-impl<T, I: Id> Copy for IdxRange<T, I> {}
 
 impl<T, I: Id> PartialEq for IdxRange<T, I> {
     #[inline]
