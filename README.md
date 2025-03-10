@@ -7,7 +7,7 @@ A simple, index-based arena without deletion.
 
 This crate is inspired by [la-arena](https://crates.io/crates/la-arena), which is used in [rust-analyzer](https://github.com/rust-lang/rust-analyzer).
 
-It provides similar functionality and an API to [la-arena's Arena\<T\>](https://docs.rs/la-arena/latest/la_arena/struct.Arena.html), but with an abstracted internal index representation and several additional features.
+This crate's [Arena\<T, I\>](https://docs.rs/indexed_arena/latest/indexed_arena/struct.Arena.html) provides similar functionality and an API to [la-arena's Arena\<T\>](https://docs.rs/la-arena/latest/la_arena/struct.Arena.html), but with an abstracted internal index representation and several additional features.
 
 ## Example
 
