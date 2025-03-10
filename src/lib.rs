@@ -15,6 +15,8 @@ use core::{
     slice,
 };
 
+mod util;
+
 /// A trait for index types used in arenas.
 ///
 /// An [`Id`] represents both the internal index in an arena and a type-level distinction
@@ -111,11 +113,9 @@ impl<T, I: Id> Copy for Idx<T, I> {}
 
 impl<T, I: Id + fmt::Debug> fmt::Debug for Idx<T, I> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut type_name = core::any::type_name::<T>();
-        if let Some(idx) = type_name.rfind(':') {
-            type_name = &type_name[idx + 1..]
-        }
-        write!(fmt, "Idx::<{}>({:?})", type_name, self.raw)
+        let t_name = util::simple_type_name::<T>();
+        let i_name = util::simple_type_name::<I>();
+        write!(fmt, "Idx::<{}, {}>({:?})", t_name, i_name, self.raw)
     }
 }
 
@@ -210,11 +210,9 @@ impl<T, I: Id> Copy for IdxRange<T, I> {}
 
 impl<T, I: Id + fmt::Debug> fmt::Debug for IdxRange<T, I> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut type_name = core::any::type_name::<T>();
-        if let Some(idx) = type_name.rfind(':') {
-            type_name = &type_name[idx + 1..]
-        }
-        write!(fmt, "IdxRange::<{}>({:?}..{:?})", type_name, self.start, self.end)
+        let t_name = util::simple_type_name::<T>();
+        let i_name = util::simple_type_name::<I>();
+        write!(fmt, "IdxRange::<{}, {}>({:?}..{:?})", t_name, i_name, self.start, self.end)
     }
 }
 
