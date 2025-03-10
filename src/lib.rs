@@ -516,6 +516,13 @@ impl<T, I: Id> IndexMut<Idx<T, I>> for Arena<T, I> {
     }
 }
 
+impl<T, I: Id> IndexMut<IdxRange<T, I>> for Arena<T, I> {
+    #[inline]
+    fn index_mut(&mut self, range: IdxRange<T, I>) -> &mut Self::Output {
+        &mut self.data[range.start.into_usize()..range.end.into_usize()]
+    }
+}
+
 impl<T: Clone, I: Id> Clone for Arena<T, I> {
     #[inline]
     fn clone(&self) -> Self {
