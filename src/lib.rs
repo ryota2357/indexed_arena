@@ -463,6 +463,49 @@ impl<T, I: Id> Arena<T, I> {
         IterMut { iter: self.data.iter_mut().enumerate(), phantom: PhantomData }
     }
 
+    /// Returns an iterator over the values in the arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::new();
+    /// arena.alloc_many([1, 2, 3]);
+    ///
+    /// let mut iter = arena.values();
+    /// assert_eq!(iter.next(), Some(&1));
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), Some(&3));
+    /// assert_eq!(iter.next(), None);
+    /// ```
+    #[inline]
+    pub fn values(&self) -> Values<'_, T, I> {
+        Values { iter: self.data.iter(), phantom: PhantomData }
+    }
+
+    /// Returns a mutable iterator over the values in the arena.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<_, u32>::new();
+    /// arena.alloc_many([1, 2, 3]);
+    ///
+    /// let mut iter = arena.values_mut();
+    /// *iter.next().unwrap() = 10;
+    /// *iter.next().unwrap() = 20;
+    /// *iter.next().unwrap() = 30;
+    /// assert_eq!(iter.next(), None);
+    ///
+    /// let mut values = arena.values().cloned().collect::<Vec<_>>();
+    /// assert_eq!(values, vec![10, 20, 30]);
+    /// ```
+    #[inline]
+    pub fn values_mut(&mut self) -> ValuesMut<'_, T, I> {
+        ValuesMut { iter: self.data.iter_mut(), phantom: PhantomData }
+    }
+
     /// Shrinks the capacity of the arena to fit the number of elements.
     ///
     /// # Examples
@@ -570,7 +613,7 @@ impl<T, I: Id> IntoIterator for Arena<T, I> {
     }
 }
 
-macro_rules! iterator_impls {
+macro_rules! iter_iterator_impls {
     ($ty:ty, type Item = $item_ty:ty;) => {
         impl<'a, T, I: Id> Iterator for $ty {
             type Item = $item_ty;
@@ -615,7 +658,7 @@ pub struct Iter<'a, T, I: Id> {
     phantom: PhantomData<I>,
 }
 
-iterator_impls! {
+iter_iterator_impls! {
     Iter<'a, T, I>,
     type Item = (Idx<T, I>, &'a T);
 }
@@ -632,7 +675,7 @@ pub struct IterMut<'a, T, I: Id> {
     phantom: PhantomData<I>,
 }
 
-iterator_impls! {
+iter_iterator_impls! {
     IterMut<'a, T, I>,
     type Item = (Idx<T, I>, &'a mut T);
 }
@@ -642,7 +685,7 @@ pub struct IntoIter<T, I: Id> {
     phantom: PhantomData<I>,
 }
 
-iterator_impls! {
+iter_iterator_impls! {
     IntoIter<T, I>,
     type Item = (Idx<T, I>, T);
 }
@@ -652,4 +695,68 @@ impl<T: Clone, I: Id> Clone for IntoIter<T, I> {
     fn clone(&self) -> Self {
         Self { iter: self.iter.clone(), phantom: PhantomData }
     }
+}
+
+macro_rules! values_iterator_impls {
+    ($ty:ty, type Item = $item_ty:ty;) => {
+        impl<'a, T, I: Id> Iterator for $ty {
+            type Item = $item_ty;
+            #[inline]
+            fn next(&mut self) -> Option<Self::Item> {
+                self.iter.next()
+            }
+            #[inline]
+            fn size_hint(&self) -> (usize, Option<usize>) {
+                self.iter.size_hint()
+            }
+            #[inline]
+            fn count(self) -> usize {
+                self.iter.count()
+            }
+            #[inline]
+            fn nth(&mut self, n: usize) -> Option<Self::Item> {
+                self.iter.nth(n)
+            }
+        }
+        impl<'a, T, I: Id> DoubleEndedIterator for $ty {
+            #[inline]
+            fn next_back(&mut self) -> Option<Self::Item> {
+                self.iter.next_back()
+            }
+        }
+        impl<'a, T, I: Id> ExactSizeIterator for $ty {
+            #[inline]
+            fn len(&self) -> usize {
+                self.iter.len()
+            }
+        }
+        impl<'a, T, I: Id> iter::FusedIterator for $ty {}
+    };
+}
+
+pub struct Values<'a, T, I: Id> {
+    iter: slice::Iter<'a, T>,
+    phantom: PhantomData<I>,
+}
+
+values_iterator_impls! {
+    Values<'a, T, I>,
+    type Item = &'a T;
+}
+
+impl<T, I: Id> Clone for Values<'_, T, I> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self { iter: self.iter.clone(), phantom: PhantomData }
+    }
+}
+
+pub struct ValuesMut<'a, T, I: Id> {
+    iter: slice::IterMut<'a, T>,
+    phantom: PhantomData<I>,
+}
+
+values_iterator_impls! {
+    ValuesMut<'a, T, I>,
+    type Item = &'a mut T;
 }
