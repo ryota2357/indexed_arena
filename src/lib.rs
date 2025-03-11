@@ -663,7 +663,7 @@ iter_iterator_impls! {
     type Item = (Idx<T, I>, &'a T);
 }
 
-impl<T: Clone, I: Id> Clone for Iter<'_, T, I> {
+impl<T, I: Id> Clone for Iter<'_, T, I> {
     #[inline]
     fn clone(&self) -> Self {
         Self { iter: self.iter.clone(), phantom: PhantomData }
