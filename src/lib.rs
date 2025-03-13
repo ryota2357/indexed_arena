@@ -224,20 +224,6 @@ impl<T, I: Id> PartialEq for IdxRange<T, I> {
 }
 impl<T, I: Id> Eq for IdxRange<T, I> {}
 
-impl<T, I: Id> Ord for IdxRange<T, I> {
-    #[inline]
-    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
-        self.start.cmp(&other.start).then_with(|| self.end.cmp(&other.end))
-    }
-}
-
-impl<T, I: Id> PartialOrd for IdxRange<T, I> {
-    #[inline]
-    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
 impl<T, I: Id + Hash> Hash for IdxRange<T, I> {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
