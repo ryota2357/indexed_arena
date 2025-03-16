@@ -158,9 +158,10 @@ impl<T, I: Id + Hash> Hash for Idx<T, I> {
 /// use indexed_arena::{Arena, IdxSpan};
 ///
 /// let mut arena: Arena<i32, u32> = Arena::new();
-/// let span: IdxSpan<i32, u32> = arena.alloc_many(vec![1, 2, 3, 4]);
+/// let span: IdxSpan<i32, u32> = arena.alloc_many(1..=4);
 /// assert_eq!(span.len(), 4);
 /// assert!(!span.is_empty());
+/// assert_eq!(&arena[span], &[1, 2, 3, 4]);
 /// ```
 pub struct IdxSpan<T, I: Id> {
     start: I,
@@ -375,7 +376,7 @@ impl<T, I: Id> Arena<T, I> {
     /// use indexed_arena::{Arena, IdxSpan};
     ///
     /// let mut arena: Arena<i32, u32> = Arena::new();
-    /// let span: IdxSpan<i32, u32> = arena.alloc_many(vec![10, 20, 30]);
+    /// let span: IdxSpan<i32, u32> = arena.alloc_many([10, 20, 30]);
     /// assert_eq!(&arena[span], &[10, 20, 30]);
     /// ```
     #[inline]
