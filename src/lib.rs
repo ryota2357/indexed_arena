@@ -617,6 +617,12 @@ macro_rules! iter_iterator_impls {
                 self.iter.count()
             }
             #[inline]
+            fn last(self) -> Option<Self::Item> {
+                self.iter
+                    .last()
+                    .map(|(i, v)| (Idx { raw: I::from_usize(i), phantom: PhantomData }, v))
+            }
+            #[inline]
             fn nth(&mut self, n: usize) -> Option<Self::Item> {
                 let (id, value) = self.iter.nth(n).map(|(i, v)| (I::from_usize(i), v))?;
                 Some((Idx { raw: id, phantom: PhantomData }, value))
@@ -698,6 +704,10 @@ macro_rules! values_iterator_impls {
             #[inline]
             fn count(self) -> usize {
                 self.iter.count()
+            }
+            #[inline]
+            fn last(self) -> Option<Self::Item> {
+                self.iter.last()
             }
             #[inline]
             fn nth(&mut self, n: usize) -> Option<Self::Item> {
