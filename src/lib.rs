@@ -148,28 +148,28 @@ impl<T, I: Id + Hash> Hash for Idx<T, I> {
     }
 }
 
-/// A range of indices within an `Arena`.
+/// A span of indices within an `Arena`.
 ///
 /// This type represents a contiguous range of allocated indices in an arena.
 ///
 /// # Examples
 ///
 /// ```
-/// use indexed_arena::{Arena, IdxRange};
+/// use indexed_arena::{Arena, IdxSpan};
 ///
 /// let mut arena: Arena<i32, u32> = Arena::new();
-/// let range: IdxRange<i32, u32> = arena.alloc_many(vec![1, 2, 3, 4]);
-/// assert_eq!(range.len(), 4);
-/// assert!(!range.is_empty());
+/// let span: IdxSpan<i32, u32> = arena.alloc_many(vec![1, 2, 3, 4]);
+/// assert_eq!(span.len(), 4);
+/// assert!(!span.is_empty());
 /// ```
-pub struct IdxRange<T, I: Id> {
+pub struct IdxSpan<T, I: Id> {
     start: I,
     end: I,
     phantom: PhantomData<fn() -> T>,
 }
 
-impl<T, I: Id> IdxRange<T, I> {
-    /// Creates a new [`IdxRange`] from the given range of raw indices.
+impl<T, I: Id> IdxSpan<T, I> {
+    /// Creates a new [`IdxSpan`] from the given range of raw indices.
     #[inline]
     pub const fn new(range: Range<I>) -> Self {
         Self { start: range.start, end: range.end, phantom: PhantomData }
@@ -187,44 +187,44 @@ impl<T, I: Id> IdxRange<T, I> {
         self.end
     }
 
-    /// Returns the number of indices in the range.
+    /// Returns the number of indices in the span.
     #[inline]
     pub fn len(&self) -> usize {
         self.end.into_usize() - self.start.into_usize()
     }
 
-    /// Returns true if the range is empty.
+    /// Returns true if the span is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.start == self.end
     }
 }
 
-impl<T, I: Id> Clone for IdxRange<T, I> {
+impl<T, I: Id> Clone for IdxSpan<T, I> {
     #[inline]
     fn clone(&self) -> Self {
         *self
     }
 }
-impl<T, I: Id> Copy for IdxRange<T, I> {}
+impl<T, I: Id> Copy for IdxSpan<T, I> {}
 
-impl<T, I: Id + fmt::Debug> fmt::Debug for IdxRange<T, I> {
+impl<T, I: Id + fmt::Debug> fmt::Debug for IdxSpan<T, I> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         let t_name = util::simple_type_name::<T>();
         let i_name = util::simple_type_name::<I>();
-        write!(fmt, "IdxRange::<{}, {}>({:?}..{:?})", t_name, i_name, self.start, self.end)
+        write!(fmt, "IdxSpan::<{}, {}>({:?}..{:?})", t_name, i_name, self.start, self.end)
     }
 }
 
-impl<T, I: Id> PartialEq for IdxRange<T, I> {
+impl<T, I: Id> PartialEq for IdxSpan<T, I> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.start == other.start && self.end == other.end
     }
 }
-impl<T, I: Id> Eq for IdxRange<T, I> {}
+impl<T, I: Id> Eq for IdxSpan<T, I> {}
 
-impl<T, I: Id + Hash> Hash for IdxRange<T, I> {
+impl<T, I: Id + Hash> Hash for IdxSpan<T, I> {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.start.hash(state);
@@ -363,7 +363,7 @@ impl<T, I: Id> Arena<T, I> {
         }
     }
 
-    /// Allocates multiple elements in the arena and returns the index range covering them.
+    /// Allocates multiple elements in the arena and returns the index span covering them.
     ///
     /// # Panics
     ///
@@ -372,14 +372,14 @@ impl<T, I: Id> Arena<T, I> {
     /// # Examples
     ///
     /// ```
-    /// use indexed_arena::{Arena, IdxRange};
+    /// use indexed_arena::{Arena, IdxSpan};
     ///
     /// let mut arena: Arena<i32, u32> = Arena::new();
-    /// let range: IdxRange<i32, u32> = arena.alloc_many(vec![10, 20, 30]);
-    /// assert_eq!(&arena[range], &[10, 20, 30]);
+    /// let span: IdxSpan<i32, u32> = arena.alloc_many(vec![10, 20, 30]);
+    /// assert_eq!(&arena[span], &[10, 20, 30]);
     /// ```
     #[inline]
-    pub fn alloc_many(&mut self, values: impl IntoIterator<Item = T>) -> IdxRange<T, I> {
+    pub fn alloc_many(&mut self, values: impl IntoIterator<Item = T>) -> IdxSpan<T, I> {
         self.try_alloc_many(values).expect("arena is full")
     }
 
@@ -387,10 +387,7 @@ impl<T, I: Id> Arena<T, I> {
     ///
     /// This method returns `None` if the arena becomes full.
     #[inline]
-    pub fn try_alloc_many(
-        &mut self,
-        values: impl IntoIterator<Item = T>,
-    ) -> Option<IdxRange<T, I>> {
+    pub fn try_alloc_many(&mut self, values: impl IntoIterator<Item = T>) -> Option<IdxSpan<T, I>> {
         let start = I::from_usize(self.data.len());
         let mut len = 0;
         for value in values {
@@ -401,7 +398,7 @@ impl<T, I: Id> Arena<T, I> {
             len += 1;
         }
         let end = I::from_usize(len);
-        Some(IdxRange::new(start..end))
+        Some(IdxSpan::new(start..end))
     }
 
     /// Returns a iterator over the elements and their indices in the arena.
@@ -527,12 +524,12 @@ impl<T, I: Id> Index<Idx<T, I>> for Arena<T, I> {
     }
 }
 
-impl<T, I: Id> Index<IdxRange<T, I>> for Arena<T, I> {
+impl<T, I: Id> Index<IdxSpan<T, I>> for Arena<T, I> {
     type Output = [T];
 
     #[inline]
-    fn index(&self, range: IdxRange<T, I>) -> &Self::Output {
-        &self.data[range.start.into_usize()..range.end.into_usize()]
+    fn index(&self, span: IdxSpan<T, I>) -> &Self::Output {
+        &self.data[span.start.into_usize()..span.end.into_usize()]
     }
 }
 
@@ -543,10 +540,10 @@ impl<T, I: Id> IndexMut<Idx<T, I>> for Arena<T, I> {
     }
 }
 
-impl<T, I: Id> IndexMut<IdxRange<T, I>> for Arena<T, I> {
+impl<T, I: Id> IndexMut<IdxSpan<T, I>> for Arena<T, I> {
     #[inline]
-    fn index_mut(&mut self, range: IdxRange<T, I>) -> &mut Self::Output {
-        &mut self.data[range.start.into_usize()..range.end.into_usize()]
+    fn index_mut(&mut self, span: IdxSpan<T, I>) -> &mut Self::Output {
+        &mut self.data[span.start.into_usize()..span.end.into_usize()]
     }
 }
 

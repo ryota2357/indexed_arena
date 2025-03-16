@@ -54,10 +54,10 @@ fn alloc_get_iter() {
 #[test]
 fn alloc_many() {
     let mut arena = Arena::<_, u32>::new();
-    let range = arena.alloc_many([10, 20, 30]);
-    assert_eq!(format!("{:?}", range), "IdxRange::<i32, u32>(0..3)");
-    assert_eq!(&arena[range], &[10, 20, 30]);
-    arena[range][1] = 21;
+    let span = arena.alloc_many([10, 20, 30]);
+    assert_eq!(format!("{:?}", span), "IdxSpan::<i32, u32>(0..3)");
+    assert_eq!(&arena[span], &[10, 20, 30]);
+    arena[span][1] = 21;
     let mut iter = arena.iter();
     assert_eq!(iter.next().map(|(i, v)| (i.into_raw(), v)), Some((0, &10)));
     assert_eq!(iter.next().map(|(i, v)| (i.into_raw(), v)), Some((1, &21)));
