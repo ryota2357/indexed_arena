@@ -398,7 +398,7 @@ impl<T, I: Id> Arena<T, I> {
             self.data.push(value);
             len += 1;
         }
-        let end = I::from_usize(len);
+        let end = I::from_usize(self.data.len());
         Some(IdxSpan::new(start..end))
     }
 
