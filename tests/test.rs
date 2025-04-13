@@ -64,3 +64,14 @@ fn alloc_many() {
     assert_eq!(iter.next().map(|(i, v)| (i.into_raw(), v)), Some((2, &30)));
     assert_eq!(iter.next(), None);
 }
+
+#[test]
+fn alloc_many_twice() {
+    let mut arena = Arena::<_, u32>::new();
+    let span1 = arena.alloc_many([1, 2]);
+    let span2 = arena.alloc_many([3, 4]);
+    assert_eq!(format!("{:?}", span1), "IdxSpan::<i32, u32>(0..2)");
+    assert_eq!(format!("{:?}", span2), "IdxSpan::<i32, u32>(2..4)");
+    assert_eq!(&arena[span1], &[1, 2]);
+    assert_eq!(&arena[span2], &[3, 4]);
+}
