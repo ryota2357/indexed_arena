@@ -390,9 +390,9 @@ impl<T, I: Id> Arena<T, I> {
     #[inline]
     pub fn try_alloc_many(&mut self, values: impl IntoIterator<Item = T>) -> Option<IdxSpan<T, I>> {
         let start = I::from_usize(self.data.len());
-        let mut len = 0;
+        let mut len = self.data.len();
         for value in values {
-            if len > I::MAX {
+            if len >= I::MAX {
                 return None;
             }
             self.data.push(value);
