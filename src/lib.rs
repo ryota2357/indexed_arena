@@ -355,7 +355,7 @@ impl<T, I: Id> Arena<T, I> {
     /// This method returns `None` if the arena is full.
     #[inline]
     pub fn try_alloc(&mut self, value: T) -> Option<Idx<T, I>> {
-        if self.data.len() > I::MAX {
+        if self.data.len() >= I::MAX {
             None
         } else {
             let id = I::from_usize(self.data.len());
