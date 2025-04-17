@@ -75,3 +75,31 @@ fn alloc_many_twice() {
     assert_eq!(&arena[span1], &[1, 2]);
     assert_eq!(&arena[span2], &[3, 4]);
 }
+
+#[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
+mod no_ub {
+    use super::*;
+    use std::panic;
+
+    fn id_from<T: Id>() {
+        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+            let max = <T as Id>::MAX;
+            if max == usize::MAX {
+                panic!("arithmetic overflow");
+            }
+            let _ = <T as Id>::from_usize(max + 1);
+        }));
+        assert!(result.is_err());
+        let _ = <T as Id>::from_usize(<T as Id>::MAX);
+    }
+    mktest!(id_from_u8, id_from::<u8>());
+    mktest!(id_from_u16, id_from::<u16>());
+    mktest!(id_from_u32, id_from::<u32>());
+    mktest!(id_from_u64, id_from::<u64>());
+    mktest!(id_from_usize, id_from::<usize>());
+    mktest!(id_from_nz_u8, id_from::<NonZero<u8>>());
+    mktest!(id_from_nz_u16, id_from::<NonZero<u16>>());
+    mktest!(id_from_nz_u32, id_from::<NonZero<u32>>());
+    mktest!(id_from_nz_u64, id_from::<NonZero<u64>>());
+    mktest!(id_from_nz_usize, id_from::<NonZero<usize>>());
+}

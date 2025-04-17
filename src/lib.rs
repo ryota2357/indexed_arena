@@ -27,12 +27,16 @@ pub trait Id: Copy + Ord {
 
     /// Converts a `usize` value to this id type.
     ///
-    /// The input `idx` (should / is guaranteed to) be less than `Self::MAX`.
+    /// The input `idx` (should / is guaranteed to) be less than or equal to `Self::MAX`.
+    ///
+    /// # Panics
+    ///
+    /// If the input `idx` is not less than `Self::MAX`, this function will panic.
     fn from_usize(idx: usize) -> Self;
 
     /// Converts this id type into a `usize`.
     ///
-    /// The returned value (should / is guaranteed to) be less than `Self::MAX`.
+    /// The returned value (should / is guaranteed to) be less or equal than `Self::MAX`.
     fn into_usize(self) -> usize;
 }
 
@@ -42,6 +46,7 @@ macro_rules! impl_id_for_nums {
             const MAX: usize = <$ty>::MAX as usize;
             #[inline]
             fn from_usize(idx: usize) -> Self {
+                assert!(idx <= <Self as Id>::MAX);
                 idx as $ty
             }
             #[inline]
@@ -53,6 +58,7 @@ macro_rules! impl_id_for_nums {
             const MAX: usize = (<$ty>::MAX - 1) as usize;
             #[inline]
             fn from_usize(idx: usize) -> Self {
+                assert!(idx <= <Self as Id>::MAX);
                 unsafe { NonZero::new_unchecked((idx + 1) as $ty) }
             }
             #[inline]
