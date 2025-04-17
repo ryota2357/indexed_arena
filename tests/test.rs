@@ -1,7 +1,7 @@
 use indexed_arena::{Arena, Id};
 use std::{fmt::Debug, num::NonZero};
 
-macro_rules! test {
+macro_rules! mktest {
     ($name:ident, $expr:expr) => {
         #[test]
         fn $name() {
@@ -18,16 +18,16 @@ fn construct<T: Id + Debug>(idx_str: &str) {
     assert!(!arena.is_empty());
     assert_eq!(format!("{:?}", idx), idx_str);
 }
-test!(construct_u8, construct::<u8>("Idx::<String, u8>(0)"));
-test!(construct_u16, construct::<u16>("Idx::<String, u16>(0)"));
-test!(construct_u32, construct::<u32>("Idx::<String, u32>(0)"));
-test!(construct_u64, construct::<u64>("Idx::<String, u64>(0)"));
-test!(construct_usize, construct::<usize>("Idx::<String, usize>(0)"));
-test!(construct_nz_u8, construct::<NonZero<u8>>("Idx::<String, NonZero<u8>>(1)"));
-test!(construct_nz_u16, construct::<NonZero<u16>>("Idx::<String, NonZero<u16>>(1)"));
-test!(construct_nz_u32, construct::<NonZero<u32>>("Idx::<String, NonZero<u32>>(1)"));
-test!(construct_nz_u64, construct::<NonZero<u64>>("Idx::<String, NonZero<u64>>(1)"));
-test!(construct_nz_usize, construct::<NonZero<usize>>("Idx::<String, NonZero<usize>>(1)"));
+mktest!(construct_u8, construct::<u8>("Idx::<String, u8>(0)"));
+mktest!(construct_u16, construct::<u16>("Idx::<String, u16>(0)"));
+mktest!(construct_u32, construct::<u32>("Idx::<String, u32>(0)"));
+mktest!(construct_u64, construct::<u64>("Idx::<String, u64>(0)"));
+mktest!(construct_usize, construct::<usize>("Idx::<String, usize>(0)"));
+mktest!(construct_nz_u8, construct::<NonZero<u8>>("Idx::<String, NonZero<u8>>(1)"));
+mktest!(construct_nz_u16, construct::<NonZero<u16>>("Idx::<String, NonZero<u16>>(1)"));
+mktest!(construct_nz_u32, construct::<NonZero<u32>>("Idx::<String, NonZero<u32>>(1)"));
+mktest!(construct_nz_u64, construct::<NonZero<u64>>("Idx::<String, NonZero<u64>>(1)"));
+mktest!(construct_nz_usize, construct::<NonZero<usize>>("Idx::<String, NonZero<usize>>(1)"));
 
 #[test]
 fn alloc_get_iter() {
