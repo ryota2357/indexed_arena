@@ -76,6 +76,23 @@ fn alloc_many_twice() {
     assert_eq!(&arena[span2], &[3, 4]);
 }
 
+#[test]
+fn try_alloc_many_rolls_back_on_full() {
+    // A `u8` arena can hold at most `u8::MAX` (255) elements.
+    let mut arena = Arena::<u32, u8>::new();
+    for i in 0..254 {
+        arena.alloc(i);
+    }
+    assert_eq!(arena.len(), 254);
+
+    // Only one slot is left, so allocating three elements must fail and leave
+    // the arena untouched (no orphaned, unreferenced elements).
+    let span = arena.try_alloc_many([1000, 1001, 1002]);
+    assert_eq!(span, None);
+    assert_eq!(arena.len(), 254);
+    assert!(arena.values().copied().eq(0..254));
+}
+
 #[cfg_attr(not(panic = "unwind"), ignore = "test requires unwinding support")]
 mod no_ub {
     use super::*;

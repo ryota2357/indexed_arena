@@ -392,20 +392,21 @@ impl<T, I: Id> Arena<T, I> {
 
     /// Fallible version of [`Arena::alloc_many`].
     ///
-    /// This method returns `None` if the arena becomes full.
+    /// This method returns `None` if the arena becomes full. In that case the arena is
+    /// left unchanged: any elements pushed before reaching the limit are rolled back.
     #[inline]
     pub fn try_alloc_many(&mut self, values: impl IntoIterator<Item = T>) -> Option<IdxSpan<T, I>> {
-        let start = I::from_usize(self.data.len());
-        let mut len = self.data.len();
+        let start = self.data.len();
         for value in values {
-            if len >= I::MAX {
+            if self.data.len() >= I::MAX {
+                // Roll back the partial allocation so a failed call has no side effect.
+                self.data.truncate(start);
                 return None;
             }
             self.data.push(value);
-            len += 1;
         }
-        let end = I::from_usize(len);
-        Some(IdxSpan::new(start..end))
+        let end = self.data.len();
+        Some(IdxSpan::new(I::from_usize(start)..I::from_usize(end)))
     }
 
     /// Returns an iterator over the elements and their indices in the arena.
