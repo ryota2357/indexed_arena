@@ -19,22 +19,44 @@ use core::{
 ///
 /// An [`Id`] represents both the internal index in an arena and a type-level distinction
 /// (for example, when using multiple arenas with the same underlying numeric index type).
+///
+/// # Contract
+///
+/// [`MAX`](Self::MAX) is the largest index this type can represent. For every `n` in
+/// `0..=MAX`, the round trip must hold:
+///
+/// ```text
+/// into_usize(from_usize(n)) == n
+/// ```
+///
+/// and [`from_usize`](Self::from_usize) must succeed for `n <= MAX` and panic when
+/// `n > MAX`. This is the only requirement.
+///
+/// In particular, `from_usize` need not be order-preserving: the arena never relies on
+/// `Self`'s [`Ord`] matching the numeric index order. [`Idx`] and [`IdxSpan`] derive
+/// their comparisons from the raw `Self` value, so for a non-order-preserving `Id` those
+/// comparisons follow `Self`'s own order rather than allocation order — which is still a
+/// valid, self-consistent ordering.
+///
+/// Violating the round trip does not cause undefined behavior, since the arena only
+/// performs bounds-checked indexing, but it yields incorrect results or panics.
 pub trait Id: Copy + Ord {
     /// The maximum value (as a usize) this id type can represent.
     const MAX: usize;
 
     /// Converts a `usize` value to this id type.
     ///
-    /// The input `idx` (should / is guaranteed to) be less than or equal to `Self::MAX`.
+    /// `idx` must not exceed [`MAX`](Self::MAX) (see the [contract](Self#contract)).
     ///
     /// # Panics
     ///
-    /// If the input `idx` is greater than `Self::MAX`, this function will panic.
+    /// Panics if `idx` is greater than [`MAX`](Self::MAX).
     fn from_usize(idx: usize) -> Self;
 
     /// Converts this id type into a `usize`.
     ///
-    /// The returned value (should / is guaranteed to) be less than or equal to `Self::MAX`.
+    /// This is the inverse of [`from_usize`](Self::from_usize) on `0..=MAX`
+    /// (see the [contract](Self#contract)).
     fn into_usize(self) -> usize;
 }
 
