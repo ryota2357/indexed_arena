@@ -1,4 +1,4 @@
-use indexed_arena::{Arena, Id};
+use indexed_arena::{Arena, Id, IdxSpan};
 use std::{fmt::Debug, num::NonZero};
 
 macro_rules! mktest {
@@ -74,6 +74,24 @@ fn alloc_many_twice() {
     assert_eq!(format!("{:?}", span2), "IdxSpan::<i32, u32>(2..4)");
     assert_eq!(&arena[span1], &[1, 2]);
     assert_eq!(&arena[span2], &[3, 4]);
+}
+
+#[test]
+fn idx_span_len_and_is_empty() {
+    let normal = IdxSpan::<u32, u32>::new(2..5);
+    assert_eq!(normal.len(), 3);
+    assert!(!normal.is_empty());
+
+    let empty = IdxSpan::<u32, u32>::new(4..4);
+    assert_eq!(empty.len(), 0);
+    assert!(empty.is_empty());
+
+    // A reversed range is treated as empty and must not underflow.
+    // (A literal `5..2` would be rejected by a lint, so build the range from variables.)
+    let (start, end) = (5, 2);
+    let reversed = IdxSpan::<u32, u32>::new(start..end);
+    assert_eq!(reversed.len(), 0);
+    assert!(reversed.is_empty());
 }
 
 #[test]

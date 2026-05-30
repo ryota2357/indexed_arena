@@ -197,13 +197,15 @@ impl<T, I: Id> IdxSpan<T, I> {
     /// Returns the number of indices in the span.
     #[inline]
     pub fn len(&self) -> usize {
-        self.end.into_usize() - self.start.into_usize()
+        // Saturating subtraction yields 0 for an empty or reversed span instead of
+        // underflowing, and lowers to branchless code.
+        self.end.into_usize().saturating_sub(self.start.into_usize())
     }
 
     /// Returns true if the span is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.start == self.end
+        self.start >= self.end
     }
 }
 
