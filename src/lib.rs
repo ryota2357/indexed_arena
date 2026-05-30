@@ -652,6 +652,9 @@ macro_rules! iter_iterator_impls {
     };
 }
 
+/// An iterator over the elements of an [`Arena`] together with their indices.
+///
+/// This struct is created by [`Arena::iter`]. It yields `(Idx<T, I>, &T)` pairs.
 pub struct Iter<'a, T, I: Id> {
     iter: iter::Enumerate<slice::Iter<'a, T>>,
     phantom: PhantomData<I>,
@@ -669,6 +672,9 @@ impl<T, I: Id> Clone for Iter<'_, T, I> {
     }
 }
 
+/// A mutable iterator over the elements of an [`Arena`] together with their indices.
+///
+/// This struct is created by [`Arena::iter_mut`]. It yields `(Idx<T, I>, &mut T)` pairs.
 pub struct IterMut<'a, T, I: Id> {
     iter: iter::Enumerate<slice::IterMut<'a, T>>,
     phantom: PhantomData<I>,
@@ -679,6 +685,10 @@ iter_iterator_impls! {
     type Item = (Idx<T, I>, &'a mut T);
 }
 
+/// An owning iterator over the elements of an [`Arena`] together with their indices.
+///
+/// This struct is created by the [`IntoIterator`] implementation for [`Arena`].
+/// It yields `(Idx<T, I>, T)` pairs.
 pub struct IntoIter<T, I: Id> {
     iter: iter::Enumerate<alloc::vec::IntoIter<T>>,
     phantom: PhantomData<I>,
@@ -737,6 +747,9 @@ macro_rules! values_iterator_impls {
     };
 }
 
+/// An iterator over the values of an [`Arena`].
+///
+/// This struct is created by [`Arena::values`]. It yields `&T` references.
 pub struct Values<'a, T, I: Id> {
     iter: slice::Iter<'a, T>,
     phantom: PhantomData<I>,
@@ -754,6 +767,9 @@ impl<T, I: Id> Clone for Values<'_, T, I> {
     }
 }
 
+/// A mutable iterator over the values of an [`Arena`].
+///
+/// This struct is created by [`Arena::values_mut`]. It yields `&mut T` references.
 pub struct ValuesMut<'a, T, I: Id> {
     iter: slice::IterMut<'a, T>,
     phantom: PhantomData<I>,
