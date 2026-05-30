@@ -31,7 +31,7 @@ pub trait Id: Copy + Ord {
     ///
     /// # Panics
     ///
-    /// If the input `idx` is not less than `Self::MAX`, this function will panic.
+    /// If the input `idx` is greater than `Self::MAX`, this function will panic.
     fn from_usize(idx: usize) -> Self;
 
     /// Converts this id type into a `usize`.
