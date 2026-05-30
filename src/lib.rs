@@ -64,24 +64,24 @@ macro_rules! impl_id_for_nums {
     ($($ty:ty),*) => {$(
         impl Id for $ty {
             const MAX: usize = <$ty>::MAX as usize;
-            #[inline]
+            #[inline(always)]
             fn from_usize(idx: usize) -> Self {
                 assert!(idx <= <Self as Id>::MAX);
                 idx as $ty
             }
-            #[inline]
+            #[inline(always)]
             fn into_usize(self) -> usize {
                 self as usize
             }
         }
         impl Id for NonZero<$ty> {
             const MAX: usize = (<$ty>::MAX - 1) as usize;
-            #[inline]
+            #[inline(always)]
             fn from_usize(idx: usize) -> Self {
                 assert!(idx <= <Self as Id>::MAX);
                 unsafe { NonZero::new_unchecked((idx + 1) as $ty) }
             }
-            #[inline]
+            #[inline(always)]
             fn into_usize(self) -> usize {
                 (self.get() - 1) as usize
             }
