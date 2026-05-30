@@ -15,8 +15,6 @@ use core::{
     slice,
 };
 
-mod util;
-
 /// A trait for index types used in arenas.
 ///
 /// An [`Id`] represents both the internal index in an arena and a type-level distinction
@@ -119,8 +117,8 @@ impl<T, I: Id> Copy for Idx<T, I> {}
 
 impl<T, I: Id + fmt::Debug> fmt::Debug for Idx<T, I> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let t_name = util::simple_type_name::<T>();
-        let i_name = util::simple_type_name::<I>();
+        let t_name = core::any::type_name::<T>();
+        let i_name = core::any::type_name::<I>();
         write!(fmt, "Idx::<{}, {}>({:?})", t_name, i_name, self.raw)
     }
 }
@@ -219,8 +217,8 @@ impl<T, I: Id> Copy for IdxSpan<T, I> {}
 
 impl<T, I: Id + fmt::Debug> fmt::Debug for IdxSpan<T, I> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let t_name = util::simple_type_name::<T>();
-        let i_name = util::simple_type_name::<I>();
+        let t_name = core::any::type_name::<T>();
+        let i_name = core::any::type_name::<I>();
         write!(fmt, "IdxSpan::<{}, {}>({:?}..{:?})", t_name, i_name, self.start, self.end)
     }
 }

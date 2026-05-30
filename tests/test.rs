@@ -9,25 +9,31 @@ macro_rules! mktest {
         }
     };
 }
-fn construct<T: Id + Debug>(idx_str: &str) {
+// The `Debug` output embeds `core::any::type_name`, whose exact form is
+// unspecified, so only the stable parts are checked: the `Idx::<` prefix and the
+// raw index. A plain integer id stores index 0 as `0`, while a `NonZero` id stores
+// it as `1` (its niche offsets by one), which exercises the round-trip contract.
+fn construct<T: Id + Debug>(raw_repr: &str) {
     let mut arena = Arena::<String, T>::new();
     assert_eq!(arena.len(), 0);
     assert!(arena.is_empty());
     let idx = arena.alloc("foo".to_string());
     assert_eq!(arena.len(), 1);
     assert!(!arena.is_empty());
-    assert_eq!(format!("{:?}", idx), idx_str);
+    let debug = format!("{idx:?}");
+    assert!(debug.starts_with("Idx::<"), "{debug}");
+    assert!(debug.ends_with(&format!("({raw_repr})")), "{debug}");
 }
-mktest!(construct_u8, construct::<u8>("Idx::<String, u8>(0)"));
-mktest!(construct_u16, construct::<u16>("Idx::<String, u16>(0)"));
-mktest!(construct_u32, construct::<u32>("Idx::<String, u32>(0)"));
-mktest!(construct_u64, construct::<u64>("Idx::<String, u64>(0)"));
-mktest!(construct_usize, construct::<usize>("Idx::<String, usize>(0)"));
-mktest!(construct_nz_u8, construct::<NonZero<u8>>("Idx::<String, NonZero<u8>>(1)"));
-mktest!(construct_nz_u16, construct::<NonZero<u16>>("Idx::<String, NonZero<u16>>(1)"));
-mktest!(construct_nz_u32, construct::<NonZero<u32>>("Idx::<String, NonZero<u32>>(1)"));
-mktest!(construct_nz_u64, construct::<NonZero<u64>>("Idx::<String, NonZero<u64>>(1)"));
-mktest!(construct_nz_usize, construct::<NonZero<usize>>("Idx::<String, NonZero<usize>>(1)"));
+mktest!(construct_u8, construct::<u8>("0"));
+mktest!(construct_u16, construct::<u16>("0"));
+mktest!(construct_u32, construct::<u32>("0"));
+mktest!(construct_u64, construct::<u64>("0"));
+mktest!(construct_usize, construct::<usize>("0"));
+mktest!(construct_nz_u8, construct::<NonZero<u8>>("1"));
+mktest!(construct_nz_u16, construct::<NonZero<u16>>("1"));
+mktest!(construct_nz_u32, construct::<NonZero<u32>>("1"));
+mktest!(construct_nz_u64, construct::<NonZero<u64>>("1"));
+mktest!(construct_nz_usize, construct::<NonZero<usize>>("1"));
 
 #[test]
 fn alloc_get_iter() {
@@ -35,11 +41,11 @@ fn alloc_get_iter() {
     struct T(u32);
     let mut arena = Arena::<_, u32>::new();
     let idx1 = arena.alloc(T(42));
-    assert_eq!(format!("{:?}", idx1), "Idx::<T, u32>(0)");
+    assert_eq!(idx1.into_raw(), 0);
     let idx2 = arena.alloc(T(17));
-    assert_eq!(format!("{:?}", idx2), "Idx::<T, u32>(1)");
+    assert_eq!(idx2.into_raw(), 1);
     let idx3 = arena.alloc(T(17));
-    assert_eq!(format!("{:?}", idx3), "Idx::<T, u32>(2)");
+    assert_eq!(idx3.into_raw(), 2);
     assert_eq!(arena[idx1].0, 42);
     assert_eq!(arena[idx2].0, 17);
     assert_eq!(arena[idx3].0, 17);
