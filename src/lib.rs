@@ -203,7 +203,7 @@ impl<T, I: Id> IdxSpan<T, I> {
     /// Returns true if the span is empty.
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.start >= self.end
+        self.len() == 0
     }
 }
 
