@@ -36,7 +36,7 @@ pub trait Id: Copy + Ord {
 
     /// Converts this id type into a `usize`.
     ///
-    /// The returned value (should / is guaranteed to) be less or equal than `Self::MAX`.
+    /// The returned value (should / is guaranteed to) be less than or equal to `Self::MAX`.
     fn into_usize(self) -> usize;
 }
 
@@ -239,7 +239,7 @@ impl<T, I: Id + Hash> Hash for IdxSpan<T, I> {
     }
 }
 
-/// A index-based arena.
+/// An index-based arena.
 ///
 /// [`Arena`] provides a mechanism to allocate objects and refer to them by a
 /// strongly-typed index ([`Idx<T, I>`]). The index not only represents the position
@@ -340,7 +340,7 @@ impl<T, I: Id> Arena<T, I> {
     /// # Panics
     ///
     /// Panics if the arena is full (i.e. if the number of elements exceeds `I::MAX`).
-    /// If you hnadle this case, use [`Arena::try_alloc`] instead.
+    /// If you want to handle this case, use [`Arena::try_alloc`] instead.
     ///
     /// # Examples
     ///
@@ -408,7 +408,7 @@ impl<T, I: Id> Arena<T, I> {
         Some(IdxSpan::new(start..end))
     }
 
-    /// Returns a iterator over the elements and their indices in the arena.
+    /// Returns an iterator over the elements and their indices in the arena.
     ///
     /// # Examples
     ///
