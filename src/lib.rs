@@ -499,6 +499,27 @@ impl<T, I: Id> Arena<T, I> {
         ValuesMut { iter: self.data.iter_mut(), phantom: PhantomData }
     }
 
+    /// Reserves capacity for at least `additional` more elements.
+    ///
+    /// The arena may reserve more space to avoid frequent reallocations.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the new capacity exceeds `isize::MAX` _bytes_.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use indexed_arena::Arena;
+    /// let mut arena = Arena::<i32, u32>::new();
+    /// arena.reserve(10);
+    /// assert!(arena.capacity() >= 10);
+    /// ```
+    #[inline]
+    pub fn reserve(&mut self, additional: usize) {
+        self.data.reserve(additional);
+    }
+
     /// Shrinks the capacity of the arena to fit the number of elements.
     ///
     /// # Examples
